@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-android-extensions'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -13,7 +15,7 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -30,6 +32,9 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -42,4 +47,31 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // dagger2
+    def dagger_version = "2.31.2"
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
+
+    // rxjava
+    def rxjava_version = "2.1.1"
+    implementation "io.reactivex.rxjava2:rxandroid:$rxjava_version"
+    // rxpermissions
+    implementation 'com.github.tbruyelle:rxpermissions:0.12'
+
+    // gson
+    implementation 'com.google.code.gson:gson:2.8.7'
+
+    // downloader
+    implementation 'com.mindorks.android:prdownloader:0.6.0'
+
+    // CircleProgressBar
+    implementation 'com.mikhaellopez:circularprogressbar:3.0.3'
+
+    //work manager
+    implementation "androidx.work:work-runtime:2.5.0"
+    implementation "androidx.work:work-runtime-ktx:2.5.0"
+
+    // Multidex
+    implementation "androidx.multidex:multidex:2.0.1"
 }

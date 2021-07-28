@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">DownloadFiles</string>
+    <string name="notification_channel_id">download_channel</string>
+    <string name="notification_title">Downloads</string>
+    <string name="cancel_download">Cancel</string>
+    <string name="notification_channel_name">Downloads</string>
 </resources>

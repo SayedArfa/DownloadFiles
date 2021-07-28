@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="card_style">
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+        <item name="cardBackgroundColor">@android:color/white</item>
+        <item name="cardCornerRadius">6dp</item>
+        <item name="cardUseCompatPadding">true</item>
+    </style>
+</resources>
