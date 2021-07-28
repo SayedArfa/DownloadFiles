@@ -29,6 +29,20 @@ fun isFileExist(file: File, context: Context): Boolean {
     return f.exists()
 }
 
+fun deleteFileRecursive(path: String) {
+    val fileOrDirectory = java.io.File(path)
+    if (fileOrDirectory.exists()) {
+        if (fileOrDirectory.isDirectory) {
+            val files = fileOrDirectory.listFiles()
+            files?.let {
+                for (child in files)
+                    deleteFileRecursive(child.absolutePath)
+            }
+        }
+        fileOrDirectory.delete()
+    }
+}
+
 fun openFile(context: Context, filePath: String) {
     try {
         Log.d("filePath",filePath)

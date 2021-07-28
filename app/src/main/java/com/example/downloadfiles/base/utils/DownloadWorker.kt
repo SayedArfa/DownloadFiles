@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.os.Build
-import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -31,7 +30,12 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
         // Mark the Worker as important
         val progress = 0
         setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
-        download(inputUrl, outputFile)
+        try {
+            download(inputUrl, outputFile)
+        } catch (e: Exception) {
+            deleteFileRecursive(getRootFile(applicationContext).path + "/" + outputFile)
+            return Result.failure()
+        }
         return Result.success()
     }
 
@@ -65,8 +69,8 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
             val diffProgress = p.toInt() - progress
             progress = p.toInt()
             setProgress(workDataOf(KEY_DOWNLOAD_WORK_PROGRESS to progress))
-            if(diffProgress>=1)
-            setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
+            if (diffProgress >= 1)
+                setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
             Log.d("progress", p.toString())
             output.write(data, 0, count)
 
