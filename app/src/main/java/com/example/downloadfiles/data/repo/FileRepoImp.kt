@@ -8,9 +8,14 @@ import androidx.work.workDataOf
 import com.example.downloadfiles.base.utils.DownloadWorker
 import com.example.downloadfiles.base.utils.getFileNameFromFile
 import com.example.downloadfiles.domain.model.entity.File
+import com.example.downloadfiles.domain.model.entity.FileDownloadStatus
 import com.example.downloadfiles.domain.model.repo.FileRepo
 import com.example.nagwatask.data.datasource.FileLocalDataSource
 import io.reactivex.Observable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class FileRepoImp @Inject constructor(
@@ -19,6 +24,43 @@ class FileRepoImp @Inject constructor(
 ) : FileRepo {
     override fun getFiles(): Observable<List<File>> {
         return localDataSource.getFiles()
+    }
+
+    private val workManager = WorkManager.getInstance(context)
+    override fun getFilesDownloadStatus(): Observable<List<FileDownloadStatus>> {
+        return getFiles().concatMap { fileList ->
+            Observable.create { emitter ->
+                GlobalScope.launch(Dispatchers.IO) {
+                    var list = mutableListOf<FileDownloadStatus>()
+                    for (file in fileList) {
+                        list.add(FileDownloadStatus.getFileDownloadStatus(context, file))
+                    }
+                    emitter.onNext(list)
+                    list.forEach { downloadStatus ->
+                        withContext(Dispatchers.Main) {
+                            workManager.getWorkInfosForUniqueWorkLiveData(downloadStatus.file.id.toString())
+                                .observeForever { workInfo ->
+                                    GlobalScope.launch(Dispatchers.IO) {
+                                        workInfo.firstOrNull()?.let {
+                                            val newStatus =
+                                                FileDownloadStatus.getFileDownloadStatus(
+                                                    context,
+                                                    downloadStatus.file,
+                                                    it
+                                                )
+                                            val newList = mutableListOf<FileDownloadStatus>()
+                                            newList.addAll(list)
+                                            newList[list.indexOf(downloadStatus)] = newStatus
+                                            emitter.onNext(newList)
+                                            list = newList
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun downloadFile(file: File) {
