@@ -4,20 +4,19 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.example.downloadfiles.base.utils.Event
+import com.example.downloadfiles.domain.interactor.GetFilesUseCase
 import com.example.downloadfiles.domain.model.entity.File
 import com.example.downloadfiles.domain.model.entity.FileDownloadStatus
-import com.example.downloadfiles.domain.model.repo.FileRepo
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class MainViewModel(val context: Context, private val fileRepo: FileRepo) : ViewModel() {
+class MainViewModel(
+    val context: Context,
+    private val getFilesUseCase: GetFilesUseCase
+) : ViewModel() {
     private val _filesLiveData = MutableLiveData<List<FileDownloadStatus>>()
     val filesLiveData: LiveData<List<FileDownloadStatus>> = _filesLiveData
 
@@ -35,10 +34,11 @@ class MainViewModel(val context: Context, private val fileRepo: FileRepo) : View
 
     private val workManager = WorkManager.getInstance(context)
     private fun getFiles() {
-        val disposable = fileRepo.getFiles().subscribeOn(Schedulers.io())
+        val disposable = getFilesUseCase.getFiles().subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                viewModelScope.launch {
+                _filesLiveData.value = it
+                /*viewModelScope.launch {
                     var list = mutableListOf<FileDownloadStatus>()
                     withContext(Dispatchers.IO) {
                         for (file in it) {
@@ -68,7 +68,7 @@ class MainViewModel(val context: Context, private val fileRepo: FileRepo) : View
                                 }
                             }
                     }
-                }
+                }*/
 
             }, {
                 it?.printStackTrace()
@@ -78,7 +78,7 @@ class MainViewModel(val context: Context, private val fileRepo: FileRepo) : View
 
 
     fun downloadFile(file: File) {
-        fileRepo.downloadFile(file)
+        getFilesUseCase.downloadFile(file)
     }
 
     override fun onCleared() {

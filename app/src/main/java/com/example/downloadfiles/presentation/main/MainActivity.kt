@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         filesAdapter.onOpenClicked = {
             openFile(
                 this,
-                getRootFile(this).absolutePath +"/"+ getFileNameFromFile(it.file)
+                getRootFile(this).absolutePath + "/" + getFileNameFromFile(it.file)
             )
         }
 

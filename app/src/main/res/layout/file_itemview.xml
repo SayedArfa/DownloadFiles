@@ -28,11 +28,10 @@
 
             <Button
                 android:id="@+id/actionButton"
-                android:layout_width="120dp"
+                android:layout_width="150dp"
                 android:layout_height="50dp"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 

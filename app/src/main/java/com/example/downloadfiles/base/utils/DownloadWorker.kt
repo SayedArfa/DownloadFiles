@@ -58,7 +58,7 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
 
         var input = BufferedInputStream(url.openStream())
         var output = FileOutputStream(file)
-        val data = ByteArray(1024)
+        val data = ByteArray(4096)
         var total = 0
         var progress = 0
         setProgress(workDataOf(KEY_DOWNLOAD_WORK_PROGRESS to progress))

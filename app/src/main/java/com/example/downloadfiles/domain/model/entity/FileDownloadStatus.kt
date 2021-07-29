@@ -29,21 +29,35 @@ data class FileDownloadStatus(val file: File) {
         ): FileDownloadStatus {
             val isFileExist = isFileExist(file, context)
             return workInfo?.let {
-                if (it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED) {
-                    FileDownloadStatus(file).apply {
-                        downloadStatus = DownloadStatus.DOWNLOADING
-                        progress = workInfo.progress.getInt(DownloadWorker.KEY_DOWNLOAD_WORK_PROGRESS,0)
-                    }
-                } else {
-                    if (isFileExist) {
+                when (it.state) {
+                    WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING -> {
                         FileDownloadStatus(file).apply {
-                            downloadStatus = DownloadStatus.DOWNLOADED
-                        }
-                    } else {
-                        FileDownloadStatus(file).apply {
-                            downloadStatus = DownloadStatus.NOT_DOWNLOADED
+                            downloadStatus = DownloadStatus.DOWNLOADING
+                            progress =
+                                workInfo.progress.getInt(
+                                    DownloadWorker.KEY_DOWNLOAD_WORK_PROGRESS,
+                                    0
+                                )
                         }
                     }
+
+                    WorkInfo.State.SUCCEEDED -> {
+                        if (isFileExist) {
+                            FileDownloadStatus(file).apply {
+                                downloadStatus = DownloadStatus.DOWNLOADED
+                            }
+                        } else {
+                            FileDownloadStatus(file).apply {
+                                downloadStatus = DownloadStatus.NOT_DOWNLOADED
+                            }
+                        }
+                    }
+                    WorkInfo.State.FAILED, WorkInfo.State.BLOCKED, WorkInfo.State.CANCELLED -> {
+                        FileDownloadStatus(file).apply {
+                            downloadStatus = DownloadStatus.FAILED
+                        }
+                    }
+
                 }
             } ?: FileDownloadStatus(file).apply {
                 downloadStatus = DownloadStatus.NOT_DOWNLOADED
@@ -51,7 +65,7 @@ data class FileDownloadStatus(val file: File) {
         }
 
         enum class DownloadStatus {
-            DOWNLOADED, DOWNLOADING, NOT_DOWNLOADED
+            DOWNLOADED, DOWNLOADING, NOT_DOWNLOADED, FAILED
         }
     }
 

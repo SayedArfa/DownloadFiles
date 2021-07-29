@@ -82,6 +82,18 @@ class FilesAdapter : RecyclerView.Adapter<FilesAdapter.FileViewHolder>() {
                         }
                     }
                 }
+
+                FileDownloadStatus.Companion.DownloadStatus.FAILED -> {
+                    viewBinding.progress.visibility = View.GONE
+                    viewBinding.actionButton.apply {
+                        visibility = View.VISIBLE
+                        text = "Retry"
+                        setOnClickListener {
+                            onDownloadClicked?.invoke(fileDownloadStatus.file)
+                        }
+                    }
+                }
+
             }
         }
     }
