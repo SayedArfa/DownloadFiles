@@ -21,7 +21,7 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as
                 NotificationManager
-
+    private lateinit var notificationBuilder: NotificationCompat.Builder
     override suspend fun doWork(): Result {
         val inputUrl = inputData.getString(KEY_INPUT_URL)
             ?: return Result.failure()
@@ -69,11 +69,15 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
             val diffProgress = p.toInt() - progress
             progress = p.toInt()
             setProgress(workDataOf(KEY_DOWNLOAD_WORK_PROGRESS to progress))
-            if (diffProgress >= 1)
-                setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
+            if (diffProgress >= 1) {
+                notificationManager.notify(
+                    (inputUrl + outputFile).hashCode(),
+                    notificationBuilder.setProgress(100, progress, false).build()
+                )
+//                setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
+            }
             Log.d("progress", p.toString())
             output.write(data, 0, count)
-
         }
 
 
@@ -101,18 +105,14 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
             createChannel()
         }
 
-        val notification = NotificationCompat.Builder(applicationContext, id)
+        notificationBuilder = NotificationCompat.Builder(applicationContext, id)
             .setContentTitle(title)
             .setTicker(title)
             .setProgress(100, progress, false)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setOngoing(true)
-            // Add the cancel action to the notification which can
-            // be used to cancel the worker
             .addAction(android.R.drawable.ic_delete, cancel, intent)
-            .build()
-
-        return ForegroundInfo(notificationId, notification)
+        return ForegroundInfo(notificationId, notificationBuilder.build())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
