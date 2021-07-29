@@ -1,10 +1,7 @@
 package com.example.nagwatask.data.repo
 
 import android.content.Context
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
+import androidx.work.*
 import com.example.downloadfiles.base.utils.DownloadWorker
 import com.example.downloadfiles.base.utils.getFileNameFromFile
 import com.example.downloadfiles.domain.model.entity.File
@@ -16,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class FileRepoImp @Inject constructor(
@@ -74,6 +72,7 @@ class FileRepoImp @Inject constructor(
         val downloadWorker = OneTimeWorkRequestBuilder<DownloadWorker>()
             .setInputData(data)
             .addTag(file.id.toString())
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.SECONDS)
             .build()
         workManager.beginUniqueWork(file.id.toString(), ExistingWorkPolicy.REPLACE, downloadWorker)
             .enqueue()

@@ -27,23 +27,22 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
             ?: return Result.failure()
         val outputFile = inputData.getString(KEY_OUTPUT_FILE_NAME)
             ?: return Result.failure()
-        // Mark the Worker as important
         val progress = 0
         setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
+        if (runAttemptCount > 3) {
+            return Result.failure()
+        }
         try {
             download(inputUrl, outputFile)
         } catch (e: Exception) {
             deleteFileRecursive(getRootFile(applicationContext).path + "/" + outputFile)
-            return Result.failure()
+            return Result.retry()
         }
         return Result.success()
     }
 
 
     private suspend fun download(inputUrl: String, outputFile: String) {
-        // Downloads a file and updates bytes read
-        // Calls setForegroundInfo() periodically when it needs to update
-        // the ongoing Notification
         var count = 0
         val file = File(
             getRootFile(applicationContext).path,
@@ -74,7 +73,6 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
                     (inputUrl + outputFile).hashCode(),
                     notificationBuilder.setProgress(100, progress, false).build()
                 )
-//                setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
             }
             Log.d("progress", p.toString())
             output.write(data, 0, count)
@@ -90,8 +88,6 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
         setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), 100))
     }
 
-    // Creates an instance of ForegroundInfo which can be used to update the
-    // ongoing notification.
     private fun createForegroundInfo(notificationId: Int, progress: Int): ForegroundInfo {
         val id = applicationContext.getString(R.string.notification_channel_id)
         val title = applicationContext.getString(R.string.notification_title)
