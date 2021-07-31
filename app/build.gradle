@@ -1,8 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
     id 'kotlin-kapt'
+//    id 'kotlin-android-extensions'
 }
 
 android {
@@ -49,7 +49,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     // dagger2
-    def dagger_version = "2.31.2"
+    def dagger_version = "2.37"
     implementation "com.google.dagger:dagger:$dagger_version"
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
 
@@ -77,4 +77,11 @@ dependencies {
 
     // coroutine
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+
+    // OkHttp, Retrofit
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    implementation "com.squareup.retrofit2:converter-moshi:2.4.0"
 }

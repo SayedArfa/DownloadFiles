@@ -2,12 +2,13 @@ package com.example.nagwatask.data.repo
 
 import android.content.Context
 import androidx.work.*
+import com.ams.downloadfiles.data.source.remote.FileRemoteDataSource
 import com.example.downloadfiles.base.utils.DownloadWorker
 import com.example.downloadfiles.base.utils.getFileNameFromFile
+import com.example.downloadfiles.data.datasource.local.FileLocalDataSource
 import com.example.downloadfiles.domain.model.entity.File
 import com.example.downloadfiles.domain.model.entity.FileDownloadStatus
 import com.example.downloadfiles.domain.model.repo.FileRepo
-import com.example.nagwatask.data.datasource.FileLocalDataSource
 import io.reactivex.Observable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -18,10 +19,12 @@ import javax.inject.Inject
 
 class FileRepoImp @Inject constructor(
     private val localDataSource: FileLocalDataSource,
+    private val remoteDataSource: FileRemoteDataSource,
     private val context: Context
 ) : FileRepo {
     override fun getFiles(): Observable<List<File>> {
-        return localDataSource.getFiles()
+        return remoteDataSource.getFiles()
+//        return localDataSource.getFiles()
     }
 
     private val workManager = WorkManager.getInstance(context)

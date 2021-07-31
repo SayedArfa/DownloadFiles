@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.downloadfiles.base.app.MyApp
+import com.example.downloadfiles.base.utils.Resource
 import com.example.downloadfiles.base.utils.getFileNameFromFile
 import com.example.downloadfiles.base.utils.getRootFile
 import com.example.downloadfiles.base.utils.openFile
@@ -12,6 +13,7 @@ import com.example.downloadfiles.databinding.ActivityMainBinding
 import com.example.nagwatask.ui.main.FilesAdapter
 import com.example.nagwatask.ui.main.MainViewModel
 import com.example.nagwatask.ui.main.MainViewModelFactory
+import com.google.android.material.snackbar.Snackbar
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -49,8 +51,30 @@ class MainActivity : AppCompatActivity() {
         viewBinding.FilesRecyclerView.layoutManager = layoutManager
         viewBinding.FilesRecyclerView.adapter = filesAdapter
         mainViewModel.filesLiveData.observe(this) {
-            it?.let { fileList ->
-                filesAdapter.differ.submitList(fileList)
+            it?.let { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        filesAdapter.differ.submitList(resource.data)
+                    }
+                    is Resource.NetworkError -> {
+                        filesAdapter.differ.submitList(listOf())
+                        Snackbar.make(
+                            viewBinding.root,
+                            "No Internet connection",
+                            Snackbar.LENGTH_INDEFINITE
+                        ).setAction("Retry") {
+                            mainViewModel.getFiles()
+                        }.show()
+                    }
+                    is Resource.UnknownError -> {
+                        filesAdapter.differ.submitList(listOf())
+                        Snackbar.make(viewBinding.root, "Unknown error", Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Retry") {
+                                mainViewModel.getFiles()
+                            }.show()
+                    }
+                }
+
             }
         }
     }
