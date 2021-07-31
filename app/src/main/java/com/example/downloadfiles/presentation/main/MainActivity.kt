@@ -5,10 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.downloadfiles.base.app.MyApp
-import com.example.downloadfiles.base.utils.Resource
-import com.example.downloadfiles.base.utils.getFileNameFromFile
-import com.example.downloadfiles.base.utils.getRootFile
-import com.example.downloadfiles.base.utils.openFile
+import com.example.downloadfiles.base.utils.*
 import com.example.downloadfiles.databinding.ActivityMainBinding
 import com.example.nagwatask.ui.main.FilesAdapter
 import com.example.nagwatask.ui.main.MainViewModel
@@ -21,6 +18,7 @@ class MainActivity : AppCompatActivity() {
     private val filesAdapter = FilesAdapter()
     private lateinit var viewBinding: ActivityMainBinding
     private lateinit var layoutManager: LinearLayoutManager
+    private var errorSnackbar: Snackbar? = null
 
     @Inject
     lateinit var viewModelFactory: MainViewModelFactory
@@ -35,6 +33,21 @@ class MainActivity : AppCompatActivity() {
             this,
             viewModelFactory
         ).get(MainViewModel::class.java)
+
+        mainViewModel.downloadErrorLiveData.observe(this, EventObserver {
+            it?.let {
+                errorSnackbar = Snackbar.make(
+                    viewBinding.root,
+                    "Failed to download File ${it.file.name}",
+                    Snackbar.LENGTH_INDEFINITE
+                ).setAction("Dismiss") {
+                    errorSnackbar?.dismiss()
+                }
+                errorSnackbar?.show()
+            } ?: kotlin.run {
+                errorSnackbar?.dismiss()
+            }
+        })
 
         filesAdapter.onDownloadClicked = {
             mainViewModel.downloadFile(it)

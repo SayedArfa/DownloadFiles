@@ -3,6 +3,7 @@ package com.example.nagwatask.ui.main
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.downloadfiles.base.utils.Event
 import com.example.downloadfiles.base.utils.Resource
 import com.example.downloadfiles.base.viewmodel.BaseViewModel
 import com.example.downloadfiles.domain.interactor.DownloadFileUseCase
@@ -20,6 +21,8 @@ class MainViewModel(
 ) : BaseViewModel() {
     private val _filesLiveData = MutableLiveData<Resource<List<FileDownloadStatus>>>()
     val filesLiveData: LiveData<Resource<List<FileDownloadStatus>>> = _filesLiveData
+    private val _downloadErrorLiveData = MutableLiveData<Event<FileDownloadStatus?>>()
+    val downloadErrorLiveData: LiveData<Event<FileDownloadStatus?>> = _downloadErrorLiveData
 
     init {
         getFiles()
@@ -42,6 +45,15 @@ class MainViewModel(
     }
 
     fun downloadFile(file: File) {
-        downloadFileUseCase.downloadFile(file)
+        addDisposable(
+            downloadFileUseCase.downloadFile(file).observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    _downloadErrorLiveData.value = Event(null)
+                }, {
+                    _downloadErrorLiveData.value = Event(
+                        FileDownloadStatus(file)
+                    )
+                })
+        )
     }
 }

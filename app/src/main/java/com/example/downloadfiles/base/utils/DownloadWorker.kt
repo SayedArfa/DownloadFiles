@@ -29,14 +29,11 @@ class DownloadWorker(context: Context, parameters: WorkerParameters) :
             ?: return Result.failure()
         val progress = 0
         setForeground(createForegroundInfo((inputUrl + outputFile).hashCode(), progress))
-        if (runAttemptCount > 3) {
-            return Result.failure()
-        }
         try {
             download(inputUrl, outputFile)
         } catch (e: Exception) {
             deleteFileRecursive(getRootFile(applicationContext).path + "/" + outputFile)
-            return Result.retry()
+            return Result.failure()
         }
         return Result.success()
     }

@@ -64,20 +64,41 @@ class FileRepoImp @Inject constructor(
         }
     }
 
-    override fun downloadFile(file: File) {
-        val workManager = WorkManager.getInstance(context)
+    override fun downloadFile(file: File): Observable<FileDownloadStatus> {
+        return Observable.create { emitter ->
+            val workManager = WorkManager.getInstance(context)
 
-        val data = workDataOf(
-            DownloadWorker.KEY_INPUT_URL to file.url,
-            DownloadWorker.KEY_OUTPUT_FILE_NAME to getFileNameFromFile(file)
-        )
+            val data = workDataOf(
+                DownloadWorker.KEY_INPUT_URL to file.url,
+                DownloadWorker.KEY_OUTPUT_FILE_NAME to getFileNameFromFile(file)
+            )
 
-        val downloadWorker = OneTimeWorkRequestBuilder<DownloadWorker>()
-            .setInputData(data)
-            .addTag(file.id.toString())
-            .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.SECONDS)
-            .build()
-        workManager.beginUniqueWork(file.id.toString(), ExistingWorkPolicy.REPLACE, downloadWorker)
-            .enqueue()
+            val downloadWorker = OneTimeWorkRequestBuilder<DownloadWorker>()
+                .setInputData(data)
+                .addTag(file.id.toString())
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.SECONDS)
+                .build()
+            workManager.beginUniqueWork(
+                file.id.toString(),
+                ExistingWorkPolicy.REPLACE,
+                downloadWorker
+            )
+                .enqueue()
+            workManager.getWorkInfoByIdLiveData(downloadWorker.id).observeForever {
+                it?.let {
+                    if (it.state in listOf(WorkInfo.State.FAILED, WorkInfo.State.BLOCKED))
+                        emitter.onError(Exception())
+                    else
+                        emitter.onNext(
+                            FileDownloadStatus.getFileDownloadStatus(
+                                context,
+                                file,
+                                it
+                            )
+                        )
+                }
+            }
+        }
+
     }
 }

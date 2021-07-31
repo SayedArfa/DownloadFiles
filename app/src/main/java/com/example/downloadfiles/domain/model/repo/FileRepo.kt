@@ -7,5 +7,5 @@ import io.reactivex.Observable
 interface FileRepo {
     fun getFiles(): Observable<List<File>>
     fun getFilesDownloadStatus(): Observable<List<FileDownloadStatus>>
-    fun downloadFile(file: File)
+    fun downloadFile(file: File): Observable<FileDownloadStatus>
 }
