@@ -1,6 +1,5 @@
-package com.example.nagwatask.ui.main
+package com.example.downloadfiles.presentation.main
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.downloadfiles.base.utils.Event
@@ -13,9 +12,9 @@ import com.example.downloadfiles.domain.model.entity.FileDownloadStatus
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
+import javax.inject.Inject
 
-class MainViewModel(
-    val context: Context,
+class MainViewModel @Inject constructor(
     private val getFilesUseCase: GetFilesUseCase,
     private val downloadFileUseCase: DownloadFileUseCase
 ) : BaseViewModel() {

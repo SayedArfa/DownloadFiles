@@ -2,37 +2,28 @@ package com.example.downloadfiles.presentation.main
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.downloadfiles.base.app.MyApp
 import com.example.downloadfiles.base.utils.*
 import com.example.downloadfiles.databinding.ActivityMainBinding
 import com.example.nagwatask.ui.main.FilesAdapter
-import com.example.nagwatask.ui.main.MainViewModel
-import com.example.nagwatask.ui.main.MainViewModelFactory
 import com.google.android.material.snackbar.Snackbar
+import dagger.android.AndroidInjection
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var mainViewModel: MainViewModel
     private val filesAdapter = FilesAdapter()
     private lateinit var viewBinding: ActivityMainBinding
     private lateinit var layoutManager: LinearLayoutManager
     private var errorSnackbar: Snackbar? = null
 
     @Inject
-    lateinit var viewModelFactory: MainViewModelFactory
+    lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
-        (application as MyApp).applicationComponent.inject(this)
+        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
 
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
-
-        mainViewModel = ViewModelProvider(
-            this,
-            viewModelFactory
-        ).get(MainViewModel::class.java)
 
         mainViewModel.downloadErrorLiveData.observe(this, EventObserver {
             it?.let {
